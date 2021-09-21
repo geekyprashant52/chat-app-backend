@@ -14,6 +14,10 @@ app.use(cors());
 let clientArray = [];
 const users = {};
 
+let getCurrentTime = () => {
+  return new Date().toLocaleTimeString();
+};
+
 io.on("connection", (socket) => {
   socket.on("new-user", (newUserData) => {
     users[socket.id] = newUserData;
@@ -45,12 +49,16 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("User Disconnected");
     clientArray = clientArray.filter(
       (item) => users[socket.id].name !== item.name
     );
-    delete users[socket.id];
+    console.log("User Disconnected");
+    let disconnectObj = { name: users[socket.id].name, time: getCurrentTime() };
+    io.emit("show-disconnect", disconnectObj);
     io.emit("user-disconnected", clientArray);
+    setTimeout(() => {
+      delete users[socket.id];
+    }, 2000);
   });
 });
 
